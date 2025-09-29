@@ -55,6 +55,7 @@ router.post(
           subject: validated.subject,
           fields: validated.fields,
           attachments: validated.attachments,
+          sender: context.policy.sender,
           metadata: {
             origin,
             ipHash,

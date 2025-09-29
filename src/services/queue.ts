@@ -17,6 +17,10 @@ export interface MailJobData {
     base64?: string;
     url?: string;
   }>;
+  sender?: {
+    fromEmail?: string;
+    fromName?: string;
+  };
   metadata: {
     origin?: string;
     ipHash?: string;

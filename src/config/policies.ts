@@ -80,6 +80,12 @@ const TemplatePolicySchema = z.object({
       priority: z.number().int().min(1).max(10).optional(),
     })
     .optional(),
+  sender: z
+    .object({
+      fromEmail: z.string().email().optional(),
+      fromName: z.string().optional(),
+    })
+    .optional(),
 });
 
 const TemplatePoliciesSchema = z.record(z.string(), TemplatePolicySchema);

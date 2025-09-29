@@ -59,6 +59,10 @@ export interface TemplatePolicy {
   queue?: {
     priority?: number;
   };
+  sender?: {
+    fromEmail?: string;
+    fromName?: string;
+  };
 }
 
 export interface TemplatePolicyMap {

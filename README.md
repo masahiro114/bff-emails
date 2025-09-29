@@ -53,6 +53,11 @@ npm run test:scenarios
 
 Environment variables `TEST_BASE_URL`, `TEST_TEMPLATE_ID`, and `TEST_RECIPIENT` let you point the tests at alternate endpoints or recipients. The runner covers successful submission, missing CSRF, idempotency conflict, and invalid attachment type cases.
 
+### Frontend Demo
+- `docker compose up --build` now also starts a static site container on <http://localhost:8081/contact-form.html> serving the sample page from `examples/contact-form.html`.
+- That origin is whitelisted in the `contact-form` policy; adjust `allowedOrigins` if you host it elsewhere.
+- The demo fetches a CSRF token, accepts the form fields, optionally converts one attachment to Base64, and posts to `/v1/mail/send` with an `Idempotency-Key` header. Update the `API_BASE` constant in the file if your API lives on a different host/port.
+
 ### Email Provider (SendGrid)
 Configure the worker with a SendGrid API key and default sender identity:
 
@@ -91,6 +96,10 @@ Policies are loaded from `config/templates.json` (override via `TEMPLATE_CONFIG_
       "maxTotalMb": 2,
       "maxCount": 3,
       "allowedMimeTypes": ["application/pdf"]
+    },
+    "sender": {
+      "fromName": "BFF Mailer",
+      "fromEmail": "no-reply@example.com"
     }
   }
 }

@@ -17,6 +17,7 @@ services:
     build: .
     env_file:
       - .env.example
+      # - .env
     environment:
       - PORT=3000
     ports:
@@ -34,6 +35,7 @@ services:
     command: ["node", "dist/worker.js"]
     env_file:
       - .env.example
+      # - .env
     depends_on:
       - redis
       - postgres

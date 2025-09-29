@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Contact Form BFF Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: #f7f7f9;
+        color: #1f2933;
+      }
+      h1 {
+        margin-bottom: 0.5rem;
+      }
+      form {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        max-width: 520px;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+        font-weight: 600;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 0.6rem;
+        margin-top: 0.35rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+      button {
+        margin-top: 1.5rem;
+        padding: 0.8rem 1.6rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: #2563eb;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #status {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 6px;
+        background: #f3f4f6;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        white-space: pre-wrap;
+      }
+      small {
+        display: block;
+        color: #6b7280;
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Contact Form (BFF)</h1>
+    <p>
+      This page demonstrates how to talk to the <code>contact-form</code> template through the BFF.
+      Update <code>config/templates.json</code> so the origin serving this page is listed in
+      <code>allowedOrigins</code>.
+    </p>
+
+    <form id="contact-form">
+      <input type="hidden" id="csrf-token" />
+
+      <label>
+        To (comma separated)
+        <input type="text" id="to" value="contact@example.com" required />
+        <small>The BFF requires at least one recipient.</small>
+      </label>
+
+      <label>
+        Subject
+        <input type="text" id="subject" value="Website enquiry" required />
+      </label>
+
+      <label>
+        Name
+        <input type="text" id="name" placeholder="Jane Doe" required />
+      </label>
+
+      <label>
+        Email
+        <input type="email" id="email" placeholder="you@example.com" required />
+      </label>
+
+      <label>
+        Message
+        <textarea id="message" rows="5" placeholder="Hello there..." required></textarea>
+      </label>
+
+      <label>
+        Attachment (optional)
+        <input type="file" id="attachment" accept="application/pdf,image/png,image/jpeg" />
+        <small>Files are converted to Base64 before sending.</small>
+      </label>
+
+      <button type="submit">Send</button>
+      <button type="button" id="refresh-csrf">Refresh CSRF</button>
+    </form>
+
+    <div id="status">Waiting…</div>
+
+    <script>
+      const API_BASE = 'http://localhost:3000';
+      const TEMPLATE_ID = 'contact-form';
+      const formEl = document.getElementById('contact-form');
+      const statusEl = document.getElementById('status');
+      const csrfEl = document.getElementById('csrf-token');
+      const refreshBtn = document.getElementById('refresh-csrf');
+
+      async function fetchCsrfToken() {
+        setStatus('Requesting CSRF token…');
+        const res = await fetch(`${API_BASE}/v1/csrf?templateId=${encodeURIComponent(TEMPLATE_ID)}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Failed to get CSRF token: ${res.status} ${text}`);
+        }
+
+        const body = await res.json();
+        csrfEl.value = body.token;
+        setStatus('CSRF token obtained. Ready to submit.');
+      }
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            if (typeof result !== 'string') {
+              reject(new Error('Unexpected file reader result'));
+              return;
+            }
+            const base64 = result.split(',')[1] ?? '';
+            resolve(base64);
+          };
+          reader.onerror = () => reject(reader.error ?? new Error('File read failed'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function buildAttachments(fileInput) {
+        const file = fileInput.files?.[0];
+        if (!file) {
+          return [];
+        }
+        const base64 = await readFileAsBase64(file);
+        return [
+          {
+            filename: file.name,
+            mimetype: file.type,
+            content: base64,
+          },
+        ];
+      }
+
+      async function handleSubmit(event) {
+        event.preventDefault();
+        const submitBtn = formEl.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        setStatus('Submitting…');
+
+        try {
+          const attachments = await buildAttachments(document.getElementById('attachment'));
+          const payload = {
+            to: document.getElementById('to').value.split(',').map((v) => v.trim()).filter(Boolean),
+            subject: document.getElementById('subject').value,
+            fields: {
+              name: document.getElementById('name').value,
+              email: document.getElementById('email').value,
+              message: document.getElementById('message').value,
+            },
+            attachments: attachments.map((item) => ({
+              filename: item.filename,
+              mimetype: item.mimetype,
+              content: item.content,
+            })),
+          };
+
+          const headers = {
+            'Content-Type': 'application/json',
+            'X-Template-Id': TEMPLATE_ID,
+            'X-CSRF-Token': csrfEl.value,
+            'Idempotency-Key': crypto.randomUUID(),
+          };
+
+          const endpoint = `${API_BASE}/v1/mail/send?templateId=${encodeURIComponent(
+            TEMPLATE_ID
+          )}`;
+
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            credentials: 'include',
+            headers,
+            body: JSON.stringify(payload),
+          });
+
+          const contentType = res.headers.get('content-type');
+          const body = contentType && contentType.includes('application/json') ? await res.json() : await res.text();
+
+          if (!res.ok) {
+            throw new Error(`Request failed (${res.status}): ${JSON.stringify(body)}`);
+          }
+
+          setStatus(`Success! Response: ${JSON.stringify(body, null, 2)}`);
+          await fetchCsrfToken();
+          formEl.reset();
+        } catch (error) {
+          console.error(error);
+          setStatus(`Error: ${error.message ?? error}`);
+        } finally {
+          submitBtn.disabled = false;
+        }
+      }
+
+      formEl.addEventListener('submit', handleSubmit);
+      refreshBtn.addEventListener('click', () => fetchCsrfToken().catch((err) => setStatus(err.message)));
+
+      fetchCsrfToken().catch((err) => setStatus(err.message));
+    </script>
+  </body>
+</html>

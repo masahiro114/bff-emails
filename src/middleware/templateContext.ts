@@ -27,7 +27,12 @@ export function createTemplateContextMiddleware(
   key: string
 ): RequestHandler {
   return (req, res, next) => {
-    const templateId = extractTemplateId(req, source, key);
+    let templateId = extractTemplateId(req, source, key);
+
+    if (!templateId && source === 'header') {
+      const fallback = extractTemplateId(req, 'query', 'templateId');
+      templateId = fallback;
+    }
 
     if (!templateId) {
       res.status(400).json({ error: 'template_id_missing' });

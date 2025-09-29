@@ -140,16 +140,17 @@ const worker = new Worker<MailJobData>(
     const startedAt = Date.now();
     logger.info({ jobId: job.id, templateId: job.data.templateId }, 'processing mail job');
 
-    if (!config.sendgridApiKey || !config.sendgridFromEmail) {
+    const fromEmail = job.data.sender?.fromEmail ?? config.sendgridFromEmail;
+    const fromName = job.data.sender?.fromName ?? config.sendgridFromName;
+
+    if (!config.sendgridApiKey || !fromEmail) {
       logger.error('sendgrid not configured');
       throw new Error('sendgrid_not_configured');
     }
 
     const { attachments, totalBytes } = await buildAttachments(job.data);
 
-    const from = config.sendgridFromName
-      ? { email: config.sendgridFromEmail, name: config.sendgridFromName }
-      : { email: config.sendgridFromEmail };
+    const from = fromName ? { email: fromEmail, name: fromName } : { email: fromEmail };
 
     const customArgs: Record<string, string> = {
       templateId: job.data.templateId,
