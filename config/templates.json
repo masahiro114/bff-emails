@@ -1,0 +1,73 @@
+{
+  "contact-form": {
+    "id": "contact-form",
+    "name": "Public Contact Form",
+    "allowedOrigins": ["https://www.example.com"],
+    "allowCredentials": true,
+    "maxBodyBytes": 1048576,
+    "auth": {
+      "type": "none"
+    },
+    "captcha": {
+      "enabled": false
+    },
+    "rateLimit": {
+      "windowSeconds": 60,
+      "max": 10,
+      "scope": "ip"
+    },
+    "idempotency": {
+      "required": false,
+      "ttlSeconds": 300
+    },
+    "csrf": {
+      "ttlSeconds": 300
+    },
+    "attachments": {
+      "mode": "base64",
+      "maxTotalMb": 2,
+      "maxCount": 3,
+      "allowedMimeTypes": ["application/pdf", "image/png", "image/jpeg"]
+    }
+  },
+  "secure-onboarding": {
+    "id": "secure-onboarding",
+    "name": "Secure Onboarding",
+    "allowedOrigins": ["https://partner.example.com"],
+    "allowCredentials": true,
+    "maxBodyBytes": 2097152,
+    "auth": {
+      "type": "jwt",
+      "issuer": "https://auth.example.com/",
+      "audience": "bff-mail",
+      "sharedSecretEnv": "ONBOARDING_JWT_SECRET",
+      "required": true
+    },
+    "captcha": {
+      "enabled": true,
+      "provider": "hcaptcha",
+      "secretEnv": "HCAPTCHA_SECRET"
+    },
+    "rateLimit": {
+      "windowSeconds": 60,
+      "max": 5,
+      "scope": "origin"
+    },
+    "idempotency": {
+      "required": true,
+      "ttlSeconds": 600
+    },
+    "csrf": {
+      "ttlSeconds": 300
+    },
+    "attachments": {
+      "mode": "base64",
+      "maxTotalMb": 5,
+      "maxCount": 5,
+      "allowedMimeTypes": ["application/pdf"]
+    },
+    "queue": {
+      "priority": 1
+    }
+  }
+}
