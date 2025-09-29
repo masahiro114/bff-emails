@@ -25,7 +25,7 @@ export const config: AppConfig = {
   port: Number(process.env.PORT ?? 3000),
   redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
   redisNamespace: process.env.REDIS_NAMESPACE ?? 'bff-mail',
-  mailQueueName: process.env.MAIL_QUEUE_NAME ?? 'mail:queue',
+  mailQueueName: process.env.MAIL_QUEUE_NAME ?? 'mail-queue',
   postgresUrl: process.env.POSTGRES_URL,
   templateConfigPath:
     process.env.TEMPLATE_CONFIG_PATH ?? path.join(root, 'config/templates.json'),

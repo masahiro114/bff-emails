@@ -30,11 +30,11 @@ export interface MailJobData {
 const connection = new IORedis(config.redisUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  keyPrefix: `${config.redisNamespace}:bullmq:`,
 });
 
 export const mailQueue = new Queue<MailJobData>(config.mailQueueName, {
   connection,
+  prefix: `${config.redisNamespace}:bullmq`,
 });
 
 export async function enqueueMailJob(

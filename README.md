@@ -44,6 +44,15 @@ src/
 
 Redis is required for CSRF tokens, rate limiting, idempotency, and the BullMQ queue. Postgres is optional; if `POSTGRES_URL` is unset the service will skip audit inserts.
 
+### Scenario Tests
+With the stack running locally you can exercise the API using the bundled scenario runner:
+
+```bash
+npm run test:scenarios
+```
+
+Environment variables `TEST_BASE_URL`, `TEST_TEMPLATE_ID`, and `TEST_RECIPIENT` let you point the tests at alternate endpoints or recipients. The runner covers successful submission, missing CSRF, idempotency conflict, and invalid attachment type cases.
+
 ### Email Provider (SendGrid)
 Configure the worker with a SendGrid API key and default sender identity:
 
@@ -89,6 +98,7 @@ Policies are loaded from `config/templates.json` (override via `TEMPLATE_CONFIG_
 Secrets referenced in policies (e.g., `sharedSecretEnv`, captcha secrets) must exist in the environment.
 
 ## Request Pipeline
+
 `POST /v1/mail/send` executes the following guards in order:
 1. Dynamic CORS check.
 2. Body size guard vs. policy limit.
@@ -106,7 +116,7 @@ The endpoint expects an `X-Template-Id` header indicating which policy to apply.
 - `Idempotency-Key` when idempotency is enforced.
 
 ## Worker Behaviour
-The worker consumes `mail:queue` jobs and currently logs the payload + writes audit metadata to Postgres. Integrate the real mail provider inside `src/worker.ts` where noted. Audit records include timestamp, template id, hashed IP/to addresses, latency, idempotency key, and attachment statistics.
+The worker consumes `mail-queue` jobs and currently logs the payload + writes audit metadata to Postgres. Integrate the real mail provider inside `src/worker.ts` where noted. Audit records include timestamp, template id, hashed IP/to addresses, latency, idempotency key, and attachment statistics.
 
 ## Roadmap Notes
 - Add object-storage attachment mode and signed upload support.

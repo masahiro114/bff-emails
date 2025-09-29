@@ -132,7 +132,6 @@ async function buildAttachments(job: MailJobData): Promise<{ attachments: SendGr
 const connection = new IORedis(config.redisUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
-  keyPrefix: `${config.redisNamespace}:bullmq:`,
 });
 
 const worker = new Worker<MailJobData>(
@@ -222,6 +221,7 @@ const worker = new Worker<MailJobData>(
   },
   {
     connection,
+    prefix: `${config.redisNamespace}:bullmq`,
   }
 );
 
