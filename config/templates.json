@@ -4,7 +4,7 @@
     "name": "Public Contact Form",
     "allowedOrigins": ["https://www.example.com", "http://localhost:8081"],
     "allowCredentials": true,
-    "maxBodyBytes": 1048576,
+    "maxBodyBytes": 26214400,
     "auth": {
       "type": "none"
     },
@@ -25,7 +25,7 @@
     },
     "attachments": {
       "mode": "base64",
-      "maxTotalMb": 2,
+      "maxTotalMb": 25,
       "maxCount": 3,
       "allowedMimeTypes": ["application/pdf", "image/png", "image/jpeg"]
     },
@@ -39,7 +39,7 @@
     "name": "Secure Onboarding",
     "allowedOrigins": ["https://partner.example.com"],
     "allowCredentials": true,
-    "maxBodyBytes": 2097152,
+    "maxBodyBytes": 26214400,
     "auth": {
       "type": "jwt",
       "issuer": "https://auth.example.com/",

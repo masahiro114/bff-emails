@@ -63,8 +63,6 @@ Configure the worker with a SendGrid API key and default sender identity:
 
 ```bash
 export SENDGRID_API_KEY=...
-export SENDGRID_FROM_EMAIL=no-reply@example.com
-export SENDGRID_FROM_NAME="BFF Mailer"
 ```
 
 The worker converts incoming form payloads into a simple text/HTML email, resolves Base64 or URL attachments, and calls `@sendgrid/mail`. Failures bubble back to BullMQ so jobs can be retried or sent to a DLQ in future enhancements.
